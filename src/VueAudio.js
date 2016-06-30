@@ -22,6 +22,9 @@ class VueAudio {
             duration: 0,
             volume: 0.5
         }
+        this.hook = {
+            progress: []
+        }
         if (this.state.preload) {
             this.init(src, options)
         }
@@ -63,10 +66,19 @@ class VueAudio {
         this.state.currentTime = Math.round(this.$Audio.currentTime * 100) / 100
         this.state.duration = Math.round(this.$Audio.duration * 100) / 100
         this.state.progress = Math.round(10000 * this.state.currentTime / this.state.duration) / 100
+
+        this.hook.progress.forEach(func => {
+            func(this.state.progress)
+        })
+    }
+
+    progress (func) {
+        this.hook.progress.push(func)
     }
 
     play () {
         if (this.state.startLoad) {
+            console.log('will', this.$Audio.readyState)
             if (!this.state.playing && this.$Audio.readyState >= 2) {
                 this.$Audio.play()
                 this.state.paused = false
@@ -96,7 +108,7 @@ class VueAudio {
     }
 
     setTime (time) {
-        if (time < 0) {
+        if (time < 0 && time > this.state.duration) {
             return false
         }
         this.$Audio.currentTime = time

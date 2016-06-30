@@ -9,15 +9,27 @@ body {
 </style>
 <template>
     <div class="rd-container">
-        <cov></cov>
+        <cov :audio="audio"></cov>
     </div>
 </template>
 <script>
-import cov from './components/audio.vue'
+// import cov from './components/audio.vue'
+import cov from './components/covAudio.vue'
+
 export default {
     data () {
         return {
-            a: 1
+            audio: {
+                src: 'http://covteam.u.qiniudn.com/test2.mp3',
+                poster: 'http://covteam.u.qiniudn.com/ka2.jpg',
+                options: {
+                    preload: false,
+                    autoplay: false,
+                    rate: 1,
+                    loop: false,
+                    volume: 0.5
+                }
+            }
         }
     },
     components: {
