@@ -1,8 +1,6 @@
-import Vue from 'vue'
+// import Vue from 'vue'
 import App from './App'
 
-/* eslint-disable no-new */
-new Vue({
-    el: 'body',
-    components: { App }
-})
+import router from './routes'
+
+router.start(App, 'app')
