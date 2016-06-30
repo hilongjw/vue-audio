@@ -78,12 +78,15 @@ class VueAudio {
 
     play () {
         if (this.state.startLoad) {
-            console.log('will', this.$Audio.readyState)
             if (!this.state.playing && this.$Audio.readyState >= 2) {
                 this.$Audio.play()
                 this.state.paused = false
                 this.state.playing = true
                 this.$Audio.addEventListener('timeupdate', this.updateState.bind(this))
+            } else {
+                this.$Audio.addEventListener('loadeddata', () => {
+                    this.play()
+                })
             }
         } else {
             this.init(this.tmp.src, this.tmp.options)

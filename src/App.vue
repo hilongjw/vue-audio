@@ -6,6 +6,10 @@ body {
     margin: 0;
     padding: 0;
 }
+.rd-container {
+    text-align: center;
+    padding: 10rem 0;
+}
 </style>
 <template>
     <div class="rd-container">
@@ -20,6 +24,7 @@ export default {
     data () {
         return {
             audio: {
+                title: 'ninelie-Aimer',
                 src: 'http://covteam.u.qiniudn.com/test2.mp3',
                 poster: 'http://covteam.u.qiniudn.com/ka2.jpg',
                 options: {
