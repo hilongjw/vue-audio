@@ -132,9 +132,9 @@
                 </div>
                 <div class="rd-audio-slider">
                     <div class="rd-audio-slider-rail">
-                        <div class="rd-audio-slider-dot" @mousedown="touchDot" :style="{ 'left': slider.progress + '%' }"></div>
+                        <div class="rd-audio-slider-dot" @mousedown="touchDot" :style="{ 'left': mu.state.progress + '%' }"></div>
                     </div>
-                    <div class="rd-audio-slider-time">{{timer}}</div>
+                    <div class="rd-audio-slider-time">{{mu.state.lastTimeFormat}}</div>
                 </div>
             </div>
         </div>
@@ -144,21 +144,6 @@
 <script>
     import VueAudio from '../VueAudio.js'
 
-    const pad = (val) => {
-        val = Math.floor(val)
-        if (val < 10) {
-            return '0' + val
-        }
-        return val + ''
-    }
-
-    const timeParse = (sec) => {
-        let min = 0
-        min = Math.floor(sec / 60)
-        sec = sec - min * 60
-        return pad(min) + ':' + pad(sec)
-    }
-
     export default {
         props: {
             audio: Object
@@ -167,7 +152,21 @@
             return {
                 mu: {
                     state: {
-                        progress: 0
+                        startLoad: false,
+                        failed: false,
+                        try: 3,
+                        tried: 0,
+                        playing: false,
+                        paused: false,
+                        playbackRate: 1.0,
+                        progress: 0,
+                        currentTime: 0,
+                        duration: 0,
+                        volume: 0.5,
+                        loaded: '0',
+                        durationTimerFormat: '00:00',
+                        currentTimeFormat: '00:00',
+                        lastTimeFormat: '00:00'
                     }
                 },
                 state: {
@@ -190,11 +189,6 @@
                 }
             }
         },
-        computed: {
-            timer () {
-                return timeParse(this.mu.state.duration - this.mu.state.currentTime)
-            }
-        },
         ready () {
             this.init()
             window.document.body.addEventListener('mousemove', this.movement, false)
@@ -207,7 +201,7 @@
         methods: {
             init () {
                 this.mu = new VueAudio(this.audio.src, this.audio.options)
-                this.mu.progress(this.progress)
+                // this.mu.progress(this.progress)
             },
             progress (count) {
                 if (!this.state.moving) {

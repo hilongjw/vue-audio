@@ -313,7 +313,7 @@
                     </div>
                 </div>
             </div>
-            <div class="rd-audio-time duration">{{duration}}</div>
+            <div class="rd-audio-time duration">{{mu.state.lastTimeFormat}}</div>
         </div>
     </div>
 </template>
@@ -341,21 +341,27 @@
             return {
                 mu: {
                     state: {
-                        progress: 0
+                        startLoad: false,
+                        failed: false,
+                        try: 3,
+                        tried: 0,
+                        playing: false,
+                        paused: false,
+                        playbackRate: 1.0,
+                        progress: 0,
+                        currentTime: 0,
+                        duration: 0,
+                        volume: 0.5,
+                        loaded: '0',
+                        durationTimerFormat: '00:00',
+                        currentTimeFormat: '00:00',
+                        lastTimeFormat: '00:00'
                     }
                 },
                 state: {
                     liked: false,
                     playing: false
                 }
-            }
-        },
-        computed: {
-            current () {
-                return timeParse(this.mu.state.currentTime)
-            },
-            duration () {
-                return timeParse(this.mu.state.duration)
             }
         },
         ready () {

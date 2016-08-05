@@ -1,3 +1,20 @@
+const pad = (val) => {
+    val = Math.floor(val)
+    if (val < 10) {
+        return '0' + val
+    }
+    return val + ''
+}
+
+const Cov = {
+    on (el, type, func) {
+        el.addEventListener(type, func)
+    },
+    off (el, type, func) {
+        el.removeEventListener(type, func)
+    }
+}
+
 class VueAudio {
     constructor (src, options = {}) {
         let preload = true
@@ -20,7 +37,11 @@ class VueAudio {
             progress: 0,
             currentTime: 0,
             duration: 0,
-            volume: 0.5
+            volume: 0.5,
+            loaded: '0',
+            durationTimerFormat: '00:00',
+            currentTimeFormat: '00:00',
+            lastTimeFormat: '00:00'
         }
         this.hook = {
             progress: []
@@ -37,7 +58,7 @@ class VueAudio {
             return
         }
         this.$Audio = new window.Audio(src)
-        this.$Audio.addEventListener('error', () => {
+        Cov.on(this.$Audio, 'error', () => {
             this.state.tried++
             this.init(src, options)
         })
@@ -57,22 +78,30 @@ class VueAudio {
     }
 
     loadState () {
-        this.$Audio.addEventListener('progress', (e) => {
-            this.state.loaded = Math.round(10000 * this.$Audio.buffered.end(0) / this.$Audio.duration) / 100
-        })
+        Cov.on(this.$Audio, 'progress', this.updateLoadState.bind(this))
     }
 
-    updateState (e) {
+    updateLoadState (e) {
+        this.state.duration = Math.round(this.$Audio.duration * 100) / 100
+        this.state.loaded = Math.round(10000 * this.$Audio.buffered.end(0) / this.$Audio.duration) / 100
+        this.state.durationTimerFormat = this.timeParse(this.state.duration)
+    }
+
+    updatePlayState (e) {
         this.state.currentTime = Math.round(this.$Audio.currentTime * 100) / 100
         this.state.duration = Math.round(this.$Audio.duration * 100) / 100
         this.state.progress = Math.round(10000 * this.state.currentTime / this.state.duration) / 100
 
+        this.state.durationTimerFormat = this.timeParse(this.state.duration)
+        this.state.currentTimeFormat = this.timeParse(this.state.currentTime)
+        this.state.lastTimeFormat = this.timeParse(this.state.duration - this.state.currentTime)
+
         this.hook.progress.forEach(func => {
-            func(this.state.progress)
+            func(this.state)
         })
     }
 
-    progress (func) {
+    updateHook (func) {
         this.hook.progress.push(func)
     }
 
@@ -82,25 +111,31 @@ class VueAudio {
                 this.$Audio.play()
                 this.state.paused = false
                 this.state.playing = true
-                this.$Audio.addEventListener('timeupdate', this.updateState.bind(this))
+                Cov.on(this.$Audio, 'timeupdate', this.updatePlayState.bind(this))
             } else {
-                this.$Audio.addEventListener('loadeddata', () => {
+                Cov.on(this.$Audio, 'loadeddata', () => {
                     this.play()
                 })
             }
         } else {
             this.init(this.tmp.src, this.tmp.options)
-            this.$Audio.addEventListener('loadeddata', () => {
+            Cov.on(this.$Audio, 'loadeddata', () => {
                 this.play()
             })
         }
+    }
+
+    destroyed () {
+        this.$Audio.pause()
+        Cov.off(this.$Audio, 'timeupdate', this.updatePlayState)
+        Cov.off(this.$Audio, 'progress', this.updateLoadState)
     }
 
     pause () {
         this.$Audio.pause()
         this.state.paused = true
         this.state.playing = false
-        this.$Audio.removeEventListener('timeupdate', this.updateState)
+        this.$Audio.removeEventListener('timeupdate', this.updatePlayState)
     }
 
     setVolume (number) {
@@ -115,6 +150,13 @@ class VueAudio {
             return false
         }
         this.$Audio.currentTime = time
+    }
+
+    timeParse (sec) {
+        let min = 0
+        min = Math.floor(sec / 60)
+        sec = sec - min * 60
+        return pad(min) + ':' + pad(sec)
     }
 
 }
