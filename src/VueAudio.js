@@ -46,7 +46,7 @@ class VueAudio {
         this.hook = {
             progress: []
         }
-        if (this.state.preload) {
+        if (preload) {
             this.init(src, options)
         }
     }
@@ -78,10 +78,18 @@ class VueAudio {
     }
 
     loadState () {
-        Cov.on(this.$Audio, 'progress', this.updateLoadState.bind(this))
+        if (this.$Audio.readyState >= 2) {
+            Cov.on(this.$Audio, 'progress', this.updateLoadState.bind(this))
+        } else {
+            Cov.on(this.$Audio, 'loadeddata', () => {
+                this.loadState()
+            })
+        }
     }
 
     updateLoadState (e) {
+        if (!e || !e.target || !this.$Audio) return
+        // console.log(e, { a: this.$Audio })
         this.state.duration = Math.round(this.$Audio.duration * 100) / 100
         this.state.loaded = Math.round(10000 * this.$Audio.buffered.end(0) / this.$Audio.duration) / 100
         this.state.durationTimerFormat = this.timeParse(this.state.duration)
