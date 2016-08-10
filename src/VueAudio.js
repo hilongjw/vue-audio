@@ -44,7 +44,8 @@ class VueAudio {
             lastTimeFormat: '00:00'
         }
         this.hook = {
-            progress: []
+            playState: [],
+            loadState: []
         }
         if (preload) {
             this.init(src, options)
@@ -52,6 +53,7 @@ class VueAudio {
     }
 
     init (src, options = {}) {
+        if (!src) throw 'src must be required'
         this.state.startLoad = true
         if (this.state.tried === this.state.try) {
             this.state.failed = true
@@ -88,8 +90,10 @@ class VueAudio {
     }
 
     updateLoadState (e) {
-        if (!e || !e.target || !this.$Audio) return
-        // console.log(e, { a: this.$Audio })
+        if (!this.$Audio) return
+        this.hook.loadState.forEach(func => {
+            func(this.state)
+        })
         this.state.duration = Math.round(this.$Audio.duration * 100) / 100
         this.state.loaded = Math.round(10000 * this.$Audio.buffered.end(0) / this.$Audio.duration) / 100
         this.state.durationTimerFormat = this.timeParse(this.state.duration)
@@ -104,13 +108,14 @@ class VueAudio {
         this.state.currentTimeFormat = this.timeParse(this.state.currentTime)
         this.state.lastTimeFormat = this.timeParse(this.state.duration - this.state.currentTime)
 
-        this.hook.progress.forEach(func => {
+        this.hook.playState.forEach(func => {
             func(this.state)
         })
     }
 
-    updateHook (func) {
-        this.hook.progress.push(func)
+    updateHook (type, func) {
+        if (!(type in this.hook)) throw 'updateHook: type should be playState or loadState'
+        this.hook[type].push(func)
     }
 
     play () {

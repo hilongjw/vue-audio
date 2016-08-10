@@ -1,6 +1,6 @@
 # vue-audio
 
-> A Vue.js project
+> Audio lib for vue
 
 ## Build Setup
 
